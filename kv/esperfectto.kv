@@ -1,0 +1,1356 @@
+#:import utils kivy.utils
+#:import dp kivy.metrics.dp
+#:import sp kivy.metrics.sp
+#:import Animation kivy.animation.Animation
+#:import Clock kivy.clock.Clock
+
+# === Color Palette ===
+# bg_dark:    #1A1A2E
+# bg_card:    #16213E
+# accent:     #D4A04A  (gold)
+# accent2:    #E8C170  (light gold)
+# text:       #EAEAEA
+# text_dim:   #8888AA
+# success:    #4ADE80
+# danger:     #F87171
+
+# =============================================
+#  HOME SCREEN — MISSION CONTROL
+# =============================================
+
+<HomeScreen>:
+    name: "home"
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex("#1A1A2E")
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(24)
+        spacing: dp(16)
+
+        # Top spacer
+        Widget:
+            size_hint_y: 0.05
+
+        # App title
+        Label:
+            text: "ESPERFECTTO"
+            font_size: sp(32)
+            bold: True
+            color: utils.get_color_from_hex("#D4A04A")
+            size_hint_y: None
+            height: dp(44)
+            halign: "center"
+
+        Label:
+            text: "dial-in assistant"
+            font_size: sp(14)
+            color: utils.get_color_from_hex("#8888AA")
+            size_hint_y: None
+            height: dp(20)
+            halign: "center"
+
+        Widget:
+            size_hint_y: 0.03
+
+        # Rank card
+        BoxLayout:
+            orientation: "vertical"
+            size_hint_y: None
+            height: dp(120)
+            padding: dp(20)
+            spacing: dp(8)
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(16)]
+
+            Label:
+                text: root.rank_title
+                font_size: sp(22)
+                bold: True
+                color: utils.get_color_from_hex("#E8C170")
+                halign: "center"
+                size_hint_y: None
+                height: dp(30)
+
+            Label:
+                text: f"{int(root.total_xp)} XP"
+                font_size: sp(16)
+                color: utils.get_color_from_hex("#EAEAEA")
+                halign: "center"
+                size_hint_y: None
+                height: dp(22)
+
+            # XP progress bar
+            BoxLayout:
+                size_hint_y: None
+                height: dp(8)
+                padding: [dp(20), 0, dp(20), 0]
+                canvas.before:
+                    Color:
+                        rgba: utils.get_color_from_hex("#0A0A1A")
+                    RoundedRectangle:
+                        pos: self.x + dp(20), self.y
+                        size: self.width - dp(40), self.height
+                        radius: [dp(4)]
+                    Color:
+                        rgba: utils.get_color_from_hex("#D4A04A")
+                    RoundedRectangle:
+                        pos: self.x + dp(20), self.y
+                        size: (self.width - dp(40)) * root.rank_progress, self.height
+                        radius: [dp(4)]
+
+            Label:
+                text: f"{int(root.xp_to_next)} XP to {root.next_rank}" if root.next_rank != "MAX" else "MAX RANK"
+                font_size: sp(11)
+                color: utils.get_color_from_hex("#8888AA")
+                halign: "center"
+                size_hint_y: None
+                height: dp(16)
+
+        # Stats row
+        BoxLayout:
+            size_hint_y: None
+            height: dp(80)
+            spacing: dp(12)
+
+            # Shots (tappable)
+            Button:
+                background_normal: ""
+                background_color: 0, 0, 0, 0
+                on_release: root.view_history()
+                canvas.before:
+                    Color:
+                        rgba: utils.get_color_from_hex("#16213E")
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(12)]
+                BoxLayout:
+                    orientation: "vertical"
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    padding: dp(12)
+                    Label:
+                        text: str(int(root.total_shots))
+                        font_size: sp(24)
+                        bold: True
+                        color: utils.get_color_from_hex("#EAEAEA")
+                    Label:
+                        text: "shots >"
+                        font_size: sp(12)
+                        color: utils.get_color_from_hex("#8888AA")
+
+            # Streak
+            BoxLayout:
+                orientation: "vertical"
+                padding: dp(12)
+                canvas.before:
+                    Color:
+                        rgba: utils.get_color_from_hex("#16213E")
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(12)]
+                Label:
+                    text: str(int(root.streak))
+                    font_size: sp(24)
+                    bold: True
+                    color: utils.get_color_from_hex("#D4A04A")
+                Label:
+                    text: "day streak"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+
+        Widget:
+            size_hint_y: 1
+
+        # START MISSION button
+        Button:
+            text: "NEW MISSION"
+            size_hint_y: None
+            height: dp(56)
+            bold: True
+            font_size: sp(18)
+            background_normal: ""
+            background_color: utils.get_color_from_hex("#D4A04A")
+            color: utils.get_color_from_hex("#1A1A2E")
+            on_release: root.start_mission()
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(28)]
+
+        Widget:
+            size_hint_y: 0.05
+
+
+# =============================================
+#  INPUT SCREEN — BEAN INTEL
+# =============================================
+
+#:import BEAN_VARIETIES app.utils.bean_data.BEAN_VARIETIES
+
+<InputScreen>:
+    name: "input"
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex("#1A1A2E")
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(24)
+        spacing: dp(0)
+
+        # Header
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            Button:
+                text: "<"
+                size_hint_x: None
+                width: dp(44)
+                font_size: sp(22)
+                background_normal: ""
+                background_color: 0, 0, 0, 0
+                color: utils.get_color_from_hex("#D4A04A")
+                on_release: root.go_back()
+            Label:
+                text: "BEAN INTEL"
+                font_size: sp(20)
+                bold: True
+                color: utils.get_color_from_hex("#D4A04A")
+                halign: "center"
+            Widget:
+                size_hint_x: None
+                width: dp(44)
+
+        ScrollView:
+            do_scroll_x: False
+            bar_color: utils.get_color_from_hex("#D4A04A")
+            bar_width: dp(3)
+
+            BoxLayout:
+                orientation: "vertical"
+                spacing: dp(8)
+                size_hint_y: None
+                height: self.minimum_height
+                padding: [0, dp(8), 0, dp(8)]
+
+                # ── Bean Name (Dropdown) ──
+                Label:
+                    text: "Bean Variety"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+                    size_hint_y: None
+                    height: dp(20)
+                    halign: "left"
+                    text_size: self.size
+
+                Spinner:
+                    id: bean_spinner
+                    text: root.bean_name
+                    values: BEAN_VARIETIES
+                    on_text: root.bean_name = self.text
+                    size_hint_y: None
+                    height: dp(48)
+                    font_size: sp(15)
+                    background_normal: ""
+                    background_color: utils.get_color_from_hex("#16213E")
+                    color: utils.get_color_from_hex("#EAEAEA")
+                    option_cls: "SpinnerOption"
+
+                # ── Brand / Roaster ──
+                Label:
+                    text: "Brand / Roaster"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+                    size_hint_y: None
+                    height: dp(20)
+                    halign: "left"
+                    text_size: self.size
+
+                TextInput:
+                    id: brand_input
+                    text: root.brand
+                    on_text: root.on_brand_text(self.text)
+                    hint_text: "e.g. Counter Culture, Onyx..."
+                    size_hint_y: None
+                    height: dp(48)
+                    multiline: False
+                    font_size: sp(15)
+                    padding: [dp(16), dp(12)]
+                    background_color: utils.get_color_from_hex("#16213E")
+                    foreground_color: utils.get_color_from_hex("#EAEAEA")
+                    hint_text_color: utils.get_color_from_hex("#555577")
+                    cursor_color: utils.get_color_from_hex("#D4A04A")
+
+                # Brand suggestion row
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(28) if root.brand_suggestion else dp(0)
+                    opacity: 1 if root.brand_suggestion else 0
+                    spacing: dp(8)
+
+                    Button:
+                        text: f"Did you mean '{root.brand_suggestion}'?"
+                        font_size: sp(12)
+                        background_normal: ""
+                        background_color: 0, 0, 0, 0
+                        color: utils.get_color_from_hex("#4ADE80")
+                        on_release: root.accept_suggestion()
+                        halign: "left"
+                        text_size: self.size
+                        valign: "center"
+
+                    Button:
+                        text: "Confirm"
+                        size_hint_x: None
+                        width: dp(70)
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_color: 0, 0, 0, 0
+                        color: utils.get_color_from_hex("#8888AA")
+                        on_release: root.confirm_new_brand()
+
+                # Confirm new brand (when no suggestion)
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(28) if (root.validation_error and "New brand" in root.validation_error) else dp(0)
+                    opacity: 1 if (root.validation_error and "New brand" in root.validation_error) else 0
+
+                    Button:
+                        text: "New brand — tap to confirm"
+                        font_size: sp(12)
+                        background_normal: ""
+                        background_color: 0, 0, 0, 0
+                        color: utils.get_color_from_hex("#E8C170")
+                        on_release: root.confirm_new_brand()
+                        halign: "left"
+                        text_size: self.size
+
+                # ── Roast Level ──
+                Label:
+                    text: "Roast Level"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+                    size_hint_y: None
+                    height: dp(20)
+                    halign: "left"
+                    text_size: self.size
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(38)
+                    spacing: dp(6)
+
+                    ToggleButton:
+                        text: "Light"
+                        group: "roast"
+                        state: "down" if root.roast_level == "light" else "normal"
+                        on_release: root.set_roast("light")
+                        font_size: sp(12)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Medium"
+                        group: "roast"
+                        state: "down" if root.roast_level == "medium" else "normal"
+                        on_release: root.set_roast("medium")
+                        font_size: sp(12)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Med-Dark"
+                        group: "roast"
+                        state: "down" if root.roast_level == "medium_dark" else "normal"
+                        on_release: root.set_roast("medium_dark")
+                        font_size: sp(12)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Dark"
+                        group: "roast"
+                        state: "down" if root.roast_level == "dark" else "normal"
+                        on_release: root.set_roast("dark")
+                        font_size: sp(12)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                # ── Region ──
+                Label:
+                    text: "Region"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+                    size_hint_y: None
+                    height: dp(20)
+                    halign: "left"
+                    text_size: self.size
+
+                # Row 1: African, S. American, C. American
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(38)
+                    spacing: dp(6)
+
+                    ToggleButton:
+                        text: "African"
+                        group: "origin"
+                        state: "down" if root.origin == "african" else "normal"
+                        on_release: root.set_origin("african")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "S. American"
+                        group: "origin"
+                        state: "down" if root.origin == "south_american" else "normal"
+                        on_release: root.set_origin("south_american")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "C. American"
+                        group: "origin"
+                        state: "down" if root.origin == "central_american" else "normal"
+                        on_release: root.set_origin("central_american")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                # Row 2: Asian, Blend, Other
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(38)
+                    spacing: dp(6)
+
+                    ToggleButton:
+                        text: "Asian"
+                        group: "origin"
+                        state: "down" if root.origin == "asian" else "normal"
+                        on_release: root.set_origin("asian")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Blend"
+                        group: "origin"
+                        state: "down" if root.origin == "blend" else "normal"
+                        on_release: root.set_origin("blend")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Other"
+                        group: "origin"
+                        state: "down" if root.origin == "other" else "normal"
+                        on_release: root.set_origin("other")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                # ── Country (Spinner, hidden for Blend) ──
+                Label:
+                    text: "Country"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+                    size_hint_y: None
+                    height: dp(20) if root.origin != "blend" else dp(0)
+                    opacity: 1 if root.origin != "blend" else 0
+                    halign: "left"
+                    text_size: self.size
+
+                Spinner:
+                    id: country_spinner
+                    text: root.country
+                    values: root.country_list
+                    on_text: root.country = self.text
+                    size_hint_y: None
+                    height: dp(44) if root.origin != "blend" else dp(0)
+                    opacity: 1 if root.origin != "blend" else 0
+                    font_size: sp(14)
+                    background_normal: ""
+                    background_color: utils.get_color_from_hex("#16213E")
+                    color: utils.get_color_from_hex("#EAEAEA")
+
+                # ── Process Method ──
+                Label:
+                    text: "Process Method"
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#8888AA")
+                    size_hint_y: None
+                    height: dp(20)
+                    halign: "left"
+                    text_size: self.size
+
+                # Row 1: Washed, Natural, Honey
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(38)
+                    spacing: dp(6)
+
+                    ToggleButton:
+                        text: "Washed"
+                        group: "process"
+                        state: "down" if root.process_method == "washed" else "normal"
+                        on_release: root.set_process("washed")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Natural"
+                        group: "process"
+                        state: "down" if root.process_method == "natural" else "normal"
+                        on_release: root.set_process("natural")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Honey"
+                        group: "process"
+                        state: "down" if root.process_method == "honey" else "normal"
+                        on_release: root.set_process("honey")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                # Row 2: Anaerobic, Wet Hulled, Other
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(38)
+                    spacing: dp(6)
+
+                    ToggleButton:
+                        text: "Anaerobic"
+                        group: "process"
+                        state: "down" if root.process_method == "anaerobic" else "normal"
+                        on_release: root.set_process("anaerobic")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Wet Hulled"
+                        group: "process"
+                        state: "down" if root.process_method == "wet_hulled" else "normal"
+                        on_release: root.set_process("wet_hulled")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                    ToggleButton:
+                        text: "Other"
+                        group: "process"
+                        state: "down" if root.process_method == "other" else "normal"
+                        on_release: root.set_process("other")
+                        font_size: sp(11)
+                        background_normal: ""
+                        background_down: ""
+                        canvas.before:
+                            Color:
+                                rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(8)]
+                        color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+
+                # ── Validation Error ──
+                Label:
+                    text: root.validation_error
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#F87171")
+                    size_hint_y: None
+                    height: dp(24) if root.validation_error else dp(0)
+                    halign: "center"
+                    text_size: self.size
+
+                Widget:
+                    size_hint_y: None
+                    height: dp(8)
+
+                # ── Submit ──
+                Button:
+                    text: "ANALYZE BEAN"
+                    size_hint_y: None
+                    height: dp(56)
+                    bold: True
+                    font_size: sp(18)
+                    background_normal: ""
+                    background_color: utils.get_color_from_hex("#D4A04A")
+                    color: utils.get_color_from_hex("#1A1A2E")
+                    on_release: root.submit()
+                    canvas.before:
+                        Color:
+                            rgba: utils.get_color_from_hex("#D4A04A")
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(28)]
+
+                Widget:
+                    size_hint_y: None
+                    height: dp(16)
+
+
+# =============================================
+#  RESULTS SCREEN — SUGGESTED PULL
+# =============================================
+
+<SettingGauge@BoxLayout>:
+    orientation: "vertical"
+    spacing: dp(4)
+    value_text: ""
+    label_text: ""
+    unit_text: ""
+    padding: dp(12)
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex("#16213E")
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(12)]
+
+    Label:
+        text: root.label_text
+        font_size: sp(11)
+        color: utils.get_color_from_hex("#8888AA")
+        size_hint_y: None
+        height: dp(16)
+    Label:
+        text: root.value_text
+        font_size: sp(28)
+        bold: True
+        color: utils.get_color_from_hex("#D4A04A")
+    Label:
+        text: root.unit_text
+        font_size: sp(11)
+        color: utils.get_color_from_hex("#8888AA")
+        size_hint_y: None
+        height: dp(16)
+
+
+<ResultsScreen>:
+    name: "results"
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex("#1A1A2E")
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(24)
+        spacing: dp(10)
+
+        # Header
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            Button:
+                text: "<"
+                size_hint_x: None
+                width: dp(44)
+                font_size: sp(22)
+                background_normal: ""
+                background_color: 0, 0, 0, 0
+                color: utils.get_color_from_hex("#D4A04A")
+                on_release: root.go_back()
+            Label:
+                text: "SUGGESTED PULL"
+                font_size: sp(20)
+                bold: True
+                color: utils.get_color_from_hex("#D4A04A")
+                halign: "center"
+            Widget:
+                size_hint_x: None
+                width: dp(44)
+
+        # Bean label
+        Label:
+            text: root.bean_label
+            font_size: sp(16)
+            color: utils.get_color_from_hex("#EAEAEA")
+            size_hint_y: None
+            height: dp(24)
+            halign: "center"
+
+        # Confidence badge
+        Label:
+            text: f"confidence: {root.confidence}"
+            font_size: sp(12)
+            color: utils.get_color_from_hex("#4ADE80") if root.confidence == "high" else (utils.get_color_from_hex("#E8C170") if root.confidence == "medium" else utils.get_color_from_hex("#8888AA"))
+            size_hint_y: None
+            height: dp(16)
+            halign: "center"
+
+        # Machine name
+        Label:
+            text: root.machine_name
+            font_size: sp(11)
+            color: utils.get_color_from_hex("#8888AA")
+            size_hint_y: None
+            height: dp(16)
+            halign: "center"
+
+        # Settings grid — 2x2
+        GridLayout:
+            cols: 2
+            spacing: dp(12)
+            size_hint_y: None
+            height: dp(210)
+
+            SettingGauge:
+                label_text: "GRIND"
+                value_text: str(int(root.grind))
+                unit_text: "level (1-8)"
+
+            SettingGauge:
+                label_text: "DOSE"
+                value_text: f"{root.dose_grams:.1f}"
+                unit_text: "grams"
+
+            SettingGauge:
+                label_text: "DOSE DIAL"
+                value_text: str(int(root.dose_dial))
+                unit_text: "dial (10-40)"
+
+            SettingGauge:
+                label_text: "TEMP"
+                value_text: f"{int(root.temp)}°"
+                unit_text: "celsius"
+
+        # Explanation card
+        BoxLayout:
+            orientation: "vertical"
+            padding: dp(12)
+            size_hint_y: None
+            height: dp(80)
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(12)]
+            Label:
+                text: "WHY"
+                font_size: sp(10)
+                color: utils.get_color_from_hex("#8888AA")
+                size_hint_y: None
+                height: dp(14)
+                halign: "left"
+                text_size: self.size
+            Label:
+                text: root.explanation
+                font_size: sp(12)
+                color: utils.get_color_from_hex("#EAEAEA")
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: "left"
+                valign: "top"
+
+        # Bean quality score card
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(56)
+            padding: dp(12)
+            spacing: dp(12)
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#2A1A0E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(12)]
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A33")
+                Line:
+                    rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
+                    width: 1
+
+            Label:
+                text: f"{root.bean_score:.0f}"
+                font_size: sp(26)
+                bold: True
+                color: utils.get_color_from_hex("#D4A04A")
+                size_hint_x: None
+                width: dp(50)
+
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    text: root.bean_score_label
+                    font_size: sp(13)
+                    bold: True
+                    color: utils.get_color_from_hex("#E8C170")
+                    halign: "left"
+                    text_size: self.size
+                    valign: "bottom"
+                Label:
+                    text: root.bean_score_source
+                    font_size: sp(9)
+                    color: utils.get_color_from_hex("#8888AA")
+                    halign: "left"
+                    text_size: self.size
+                    valign: "top"
+
+        Widget:
+            size_hint_y: 1
+
+        # Action button
+        Button:
+            text: "I PULLED THE SHOT — RATE IT"
+            size_hint_y: None
+            height: dp(56)
+            bold: True
+            font_size: sp(15)
+            background_normal: ""
+            background_color: utils.get_color_from_hex("#D4A04A")
+            color: utils.get_color_from_hex("#1A1A2E")
+            on_release: root.go_to_feedback()
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(28)]
+
+        Widget:
+            size_hint_y: 0.03
+
+
+# =============================================
+#  FEEDBACK SCREEN — DEBRIEF
+# =============================================
+
+<RatingRow>:
+    orientation: "horizontal"
+    size_hint_y: None
+    height: dp(44)
+    spacing: dp(8)
+    padding: [0, 0, 0, 0]
+
+    Label:
+        text: root.label_text
+        font_size: sp(13)
+        color: utils.get_color_from_hex("#EAEAEA")
+        size_hint_x: 0.35
+        halign: "left"
+        text_size: self.size
+        valign: "center"
+
+    BoxLayout:
+        size_hint_x: 0.65
+        spacing: dp(6)
+
+        ToggleButton:
+            text: "1"
+            group: root.label_text
+            state: "down" if root.rating_value == 1 else "normal"
+            on_release: root.set_rating(1)
+            font_size: sp(14)
+            bold: True
+            background_normal: ""
+            background_down: ""
+            background_color: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+            color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(8)]
+
+        ToggleButton:
+            text: "2"
+            group: root.label_text
+            state: "down" if root.rating_value == 2 else "normal"
+            on_release: root.set_rating(2)
+            font_size: sp(14)
+            bold: True
+            background_normal: ""
+            background_down: ""
+            background_color: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+            color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(8)]
+
+        ToggleButton:
+            text: "3"
+            group: root.label_text
+            state: "down" if root.rating_value == 3 else "normal"
+            on_release: root.set_rating(3)
+            font_size: sp(14)
+            bold: True
+            background_normal: ""
+            background_down: ""
+            background_color: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+            color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(8)]
+
+        ToggleButton:
+            text: "4"
+            group: root.label_text
+            state: "down" if root.rating_value == 4 else "normal"
+            on_release: root.set_rating(4)
+            font_size: sp(14)
+            bold: True
+            background_normal: ""
+            background_down: ""
+            background_color: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+            color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(8)]
+
+        ToggleButton:
+            text: "5"
+            group: root.label_text
+            state: "down" if root.rating_value == 5 else "normal"
+            on_release: root.set_rating(5)
+            font_size: sp(14)
+            bold: True
+            background_normal: ""
+            background_down: ""
+            background_color: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+            color: utils.get_color_from_hex("#1A1A2E") if self.state == "down" else utils.get_color_from_hex("#EAEAEA")
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A") if self.state == "down" else utils.get_color_from_hex("#16213E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(8)]
+
+
+<FeedbackScreen>:
+    name: "feedback"
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex("#1A1A2E")
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(24)
+        spacing: dp(12)
+
+        # Header
+        Label:
+            text: "DEBRIEF"
+            font_size: sp(20)
+            bold: True
+            color: utils.get_color_from_hex("#D4A04A")
+            size_hint_y: None
+            height: dp(44)
+            halign: "center"
+
+        Label:
+            text: root.bean_label
+            font_size: sp(14)
+            color: utils.get_color_from_hex("#8888AA")
+            size_hint_y: None
+            height: dp(22)
+            halign: "center"
+
+        Label:
+            text: "How was the shot?"
+            font_size: sp(16)
+            color: utils.get_color_from_hex("#EAEAEA")
+            size_hint_y: None
+            height: dp(30)
+            halign: "center"
+
+        Widget:
+            size_hint_y: None
+            height: dp(8)
+
+        # Rating scale labels
+        BoxLayout:
+            size_hint_y: None
+            height: dp(18)
+            Label:
+                text: ""
+                size_hint_x: 0.35
+            Label:
+                text: "poor"
+                font_size: sp(10)
+                color: utils.get_color_from_hex("#555577")
+                halign: "left"
+                text_size: self.size
+                size_hint_x: 0.325
+            Label:
+                text: "perfect"
+                font_size: sp(10)
+                color: utils.get_color_from_hex("#555577")
+                halign: "right"
+                text_size: self.size
+                size_hint_x: 0.325
+
+        # Rating rows
+        RatingRow:
+            id: sweetness_row
+            label_text: "Sweetness"
+            rating_value: root.sweetness
+
+        RatingRow:
+            id: acidity_row
+            label_text: "Acidity"
+            rating_value: root.acidity
+
+        RatingRow:
+            id: bitterness_row
+            label_text: "Bitterness"
+            rating_value: root.bitterness
+
+        RatingRow:
+            id: body_row
+            label_text: "Body"
+            rating_value: root.body
+
+        Widget:
+            size_hint_y: None
+            height: dp(8)
+
+        # Divider
+        Widget:
+            size_hint_y: None
+            height: dp(1)
+            canvas:
+                Color:
+                    rgba: utils.get_color_from_hex("#16213E")
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        RatingRow:
+            id: overall_row
+            label_text: "OVERALL"
+            rating_value: root.overall
+
+        Widget:
+            size_hint_y: 1
+
+        # Submit
+        Button:
+            text: "SAVE DEBRIEF"
+            size_hint_y: None
+            height: dp(56)
+            bold: True
+            font_size: sp(18)
+            background_normal: ""
+            background_color: utils.get_color_from_hex("#D4A04A")
+            color: utils.get_color_from_hex("#1A1A2E")
+            on_release: root.submit_feedback()
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(28)]
+
+        Button:
+            text: "SKIP"
+            size_hint_y: None
+            height: dp(40)
+            font_size: sp(14)
+            background_normal: ""
+            background_color: 0, 0, 0, 0
+            color: utils.get_color_from_hex("#8888AA")
+            on_release: root.skip_feedback()
+
+        Widget:
+            size_hint_y: 0.03
+
+
+# =============================================
+#  HISTORY SCREEN — SHOT LOG
+# =============================================
+
+<HistoryScreen>:
+    name: "history"
+
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex("#1A1A2E")
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(24)
+        spacing: dp(12)
+
+        # Header
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44)
+            Button:
+                text: "<"
+                size_hint_x: None
+                width: dp(44)
+                font_size: sp(22)
+                background_normal: ""
+                background_color: 0, 0, 0, 0
+                color: utils.get_color_from_hex("#D4A04A")
+                on_release: root.go_back()
+            Label:
+                text: "SHOT LOG"
+                font_size: sp(20)
+                bold: True
+                color: utils.get_color_from_hex("#D4A04A")
+                halign: "center"
+            Widget:
+                size_hint_x: None
+                width: dp(44)
+
+        # Favorite bean card
+        BoxLayout:
+            orientation: "vertical"
+            size_hint_y: None
+            height: dp(72)
+            padding: dp(14)
+            spacing: dp(4)
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex("#2A1A0E")
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(12)]
+                Color:
+                    rgba: utils.get_color_from_hex("#D4A04A33")
+                Line:
+                    rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
+                    width: 1
+
+            Label:
+                text: "FAVORITE BEAN"
+                font_size: sp(10)
+                color: utils.get_color_from_hex("#D4A04A")
+                halign: "left"
+                text_size: self.size
+                size_hint_y: None
+                height: dp(14)
+
+            BoxLayout:
+                size_hint_y: None
+                height: dp(22)
+                Label:
+                    text: root.favorite_bean
+                    font_size: sp(15)
+                    bold: True
+                    color: utils.get_color_from_hex("#E8C170")
+                    halign: "left"
+                    text_size: self.size
+                    size_hint_x: 0.55
+                Label:
+                    text: root.favorite_pulls
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#EAEAEA")
+                    halign: "center"
+                    size_hint_x: 0.25
+                Label:
+                    text: root.favorite_rating
+                    font_size: sp(12)
+                    color: utils.get_color_from_hex("#4ADE80")
+                    halign: "right"
+                    text_size: self.size
+                    size_hint_x: 0.2
+
+        # Session list header
+        Label:
+            text: "All Sessions"
+            font_size: sp(13)
+            color: utils.get_color_from_hex("#8888AA")
+            size_hint_y: None
+            height: dp(22)
+            halign: "left"
+            text_size: self.size
+
+        # Scrollable session list
+        ScrollView:
+            do_scroll_x: False
+            bar_color: utils.get_color_from_hex("#D4A04A")
+            bar_width: dp(3)
+
+            BoxLayout:
+                id: session_list
+                orientation: "vertical"
+                spacing: dp(8)
+                size_hint_y: None
+                height: self.minimum_height
