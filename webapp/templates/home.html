@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Esperfectto{% endblock %}
+{% block content %}
+<section class="screen">
+  <header class="hero">
+    <h1 class="brand">ESPERFECTTO</h1>
+    <p class="tagline">dial-in assistant</p>
+  </header>
+
+  <div class="card rank-card">
+    <div class="rank-name">{{ rank }}</div>
+    <div class="rank-xp">{{ stats.total_xp }} XP</div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {{ progress_pct }}%"></div>
+    </div>
+    <div class="rank-next">
+      {% if next_rank.next_rank == "MAX" %}
+        Max rank reached ✨
+      {% else %}
+        {{ next_rank.xp_needed }} XP to {{ next_rank.next_rank }}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <a class="card stat" href="/history">
+      <div class="stat-num">{{ stats.total_shots }}</div>
+      <div class="stat-label">shots ›</div>
+    </a>
+    <div class="card stat">
+      <div class="stat-num">{{ stats.current_streak }}</div>
+      <div class="stat-label">day streak</div>
+    </div>
+  </div>
+
+  <a class="cta" href="/input">NEW MISSION</a>
+</section>
+{% endblock %}

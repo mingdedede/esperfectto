@@ -1,3 +1,5 @@
-kivy==2.3.1
-kivymd==2.0.1.dev0
-pillow>=10.0.0
+# Webapp dependencies (used by Render / any host)
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+jinja2>=3.1.0
+python-multipart>=0.0.9

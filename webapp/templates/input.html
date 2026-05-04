@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Bean Intel · Esperfectto{% endblock %}
+{% block content %}
+<section class="screen scroll">
+  <header class="screen-header">
+    <a class="back" href="/">←</a>
+    <h2>BEAN INTEL</h2>
+  </header>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <form method="post" action="/recommend" class="form">
+    <label class="field">
+      <span class="field-label">Bean Variety</span>
+      <select name="bean_name" required>
+        <option value="">Select bean...</option>
+        {% for v in varieties %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
+      </select>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Brand / Roaster</span>
+      <input type="text" id="brand" name="brand" placeholder="e.g. Onyx Coffee Lab" required
+             hx-post="/check-brand" hx-trigger="keyup changed delay:600ms"
+             hx-target="#brand-status" hx-swap="innerHTML" />
+      <div id="brand-status"></div>
+    </label>
+
+    <fieldset class="field">
+      <legend class="field-label">Roast Level</legend>
+      <div class="toggle-grid two-col">
+        {% for v, label in roast_levels %}
+          <label class="toggle">
+            <input type="radio" name="roast_level" value="{{ v }}" {% if v == "medium" %}checked{% endif %} />
+            <span>{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend class="field-label">Region</legend>
+      <div class="toggle-grid three-col">
+        {% for v, label in regions %}
+          <label class="toggle">
+            <input type="radio" name="origin" value="{{ v }}" {% if v == selected_origin %}checked{% endif %}
+                   hx-get="/input" hx-vals='{"origin": "{{ v }}"}'
+                   hx-target="body" hx-swap="outerHTML" hx-push-url="true" />
+            <span>{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {% if countries %}
+    <label class="field">
+      <span class="field-label">Country</span>
+      <select name="country">
+        {% for c in countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </label>
+    {% else %}
+    <input type="hidden" name="country" value="" />
+    {% endif %}
+
+    <fieldset class="field">
+      <legend class="field-label">Process Method</legend>
+      <div class="toggle-grid three-col">
+        {% for v, label in processes %}
+          <label class="toggle">
+            <input type="radio" name="process_method" value="{{ v }}" {% if v == "washed" %}checked{% endif %} />
+            <span>{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <button type="submit" class="cta">ANALYZE BEAN</button>
+  </form>
+</section>
+{% endblock %}

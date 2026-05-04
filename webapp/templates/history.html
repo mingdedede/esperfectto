@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}History · Esperfectto{% endblock %}
+{% block content %}
+<section class="screen scroll">
+  <header class="screen-header">
+    <a class="back" href="/">←</a>
+    <h2>HISTORY</h2>
+  </header>
+
+  {% if favorite %}
+  <div class="card favorite-card">
+    <div class="fav-tag">⭐ FAVORITE BEAN</div>
+    <div class="fav-name">{{ favorite.brand }} {{ favorite.bean_name }}</div>
+    <div class="fav-meta">
+      {{ favorite.pull_count }} pull{{ "s" if favorite.pull_count != 1 else "" }}
+      {% if favorite.avg_rating %} · avg {{ favorite.avg_rating }}/5{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not sessions %}
+    <p class="empty">No sessions yet. <a href="/input">Pull your first shot →</a></p>
+  {% endif %}
+
+  {% for s in sessions %}
+  <div class="card session-card">
+    <div class="session-head">
+      <span class="session-bean">{{ s.brand }} {{ s.bean_name }}</span>
+      <span class="session-date">{{ s.created_at[:10] }}</span>
+    </div>
+    <div class="session-settings">
+      G{{ s.rec_grind }} · {{ "%.1f"|format(s.rec_dose_grams) }}g · D{{ s.rec_dose_dial }} · {{ s.rec_temp }}°C
+    </div>
+    {% if s.rating_overall %}
+      <div class="session-rating
+        {% if s.rating_overall >= 4 %}good{% elif s.rating_overall >= 3 %}ok{% else %}bad{% endif %}">
+        ★ {{ s.rating_overall }}/5
+      </div>
+    {% else %}
+      <a class="session-rate" href="/feedback/{{ s.id }}">Rate →</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

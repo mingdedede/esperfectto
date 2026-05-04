@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Suggested Pull · Esperfectto{% endblock %}
+{% block content %}
+<section class="screen scroll">
+  <header class="screen-header">
+    <a class="back" href="/input">←</a>
+    <h2>SUGGESTED PULL</h2>
+  </header>
+
+  <p class="machine-name">De'Longhi La Specialista Arte</p>
+  <p class="bean-label">{{ bean_label }}</p>
+
+  <div class="setting-grid">
+    <div class="setting">
+      <div class="setting-num">{{ session.rec_grind }}</div>
+      <div class="setting-label">GRIND</div>
+      <div class="setting-sub">1 fine — 8 coarse</div>
+    </div>
+    <div class="setting">
+      <div class="setting-num">{{ "%.1f"|format(session.rec_dose_grams) }}g</div>
+      <div class="setting-label">DOSE</div>
+      <div class="setting-sub">grams in basket</div>
+    </div>
+    <div class="setting">
+      <div class="setting-num">{{ session.rec_dose_dial }}</div>
+      <div class="setting-label">DOSE DIAL</div>
+      <div class="setting-sub">10 — 40</div>
+    </div>
+    <div class="setting">
+      <div class="setting-num">{{ session.rec_temp }}°C</div>
+      <div class="setting-label">TEMP</div>
+      <div class="setting-sub">brew temperature</div>
+    </div>
+  </div>
+
+  <div class="card explanation">{{ session.rec_explanation }}</div>
+
+  {% if score > 0 %}
+  <div class="card score-card">
+    <div class="score-label-top">BEAN QUALITY</div>
+    <div class="score-num">{{ score }}</div>
+    <div class="score-label">{{ score_label }}</div>
+    <div class="score-source">Est. quality on Coffee Review scale</div>
+  </div>
+  {% endif %}
+
+  <a class="cta" href="/feedback/{{ session.id }}">RATE THIS SHOT</a>
+  <a class="link-btn" href="/">Back home</a>
+</section>
+{% endblock %}

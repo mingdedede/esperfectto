@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Rate Shot · Esperfectto{% endblock %}
+{% block content %}
+<section class="screen scroll">
+  <header class="screen-header">
+    <a class="back" href="/results/{{ session.id }}">←</a>
+    <h2>RATE THE SHOT</h2>
+  </header>
+
+  <p class="bean-label">{{ bean_label }}</p>
+
+  <form method="post" action="/feedback/{{ session.id }}" class="form">
+    {% for name, label in [
+      ("sweetness", "Sweetness"),
+      ("acidity", "Acidity"),
+      ("bitterness", "Bitterness"),
+      ("body", "Body"),
+      ("overall", "Overall")
+    ] %}
+    <fieldset class="field">
+      <legend class="field-label">{{ label }}</legend>
+      <div class="rating-row">
+        {% for n in [1,2,3,4,5] %}
+          <label class="rating-pip">
+            <input type="radio" name="{{ name }}" value="{{ n }}" {% if n == 3 %}checked{% endif %} />
+            <span>{{ n }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endfor %}
+
+    <label class="field">
+      <span class="field-label">Notes (optional)</span>
+      <textarea name="notes" rows="3" placeholder="Tasted like..."></textarea>
+    </label>
+
+    <button type="submit" class="cta">SUBMIT RATING</button>
+  </form>
+</section>
+{% endblock %}
