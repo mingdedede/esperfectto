@@ -82,9 +82,9 @@ def home(request: Request):
     rank = get_barista_rank(stats["total_xp"])
     next_rank = get_next_rank_info(stats["total_xp"])
     return templates.TemplateResponse(
+        request,
         "home.html",
         {
-            "request": request,
             "stats": stats,
             "rank": rank,
             "next_rank": next_rank,
@@ -97,9 +97,9 @@ def home(request: Request):
 def input_form(request: Request, error: str = "", origin: str = "south_american"):
     countries = get_countries_for_region(origin)
     return templates.TemplateResponse(
+        request,
         "input.html",
         {
-            "request": request,
             "error": error,
             "varieties": BEAN_VARIETIES,
             "roast_levels": ROAST_LEVELS,
@@ -200,9 +200,9 @@ def results(
     if not session:
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(
+        request,
         "results.html",
         {
-            "request": request,
             "session": session,
             "bean_label": f"{session['brand']} {session['bean_name']}".strip(),
             "score": score,
@@ -218,9 +218,9 @@ def feedback_form(request: Request, session_id: int):
     if not session:
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(
+        request,
         "feedback.html",
         {
-            "request": request,
             "session": session,
             "bean_label": f"{session['brand']} {session['bean_name']}".strip(),
         },
@@ -256,9 +256,9 @@ def history(request: Request):
     sessions = database.get_all_sessions(limit=100)
     favorite = database.get_favorite_bean()
     return templates.TemplateResponse(
+        request,
         "history.html",
         {
-            "request": request,
             "sessions": sessions,
             "favorite": favorite,
         },
